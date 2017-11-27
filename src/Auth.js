@@ -1,5 +1,5 @@
 import React from 'react';
-import { authorizeUser } from './AuthorizeApi';
+import { authorizeUser, isAuthorized } from './AuthorizeApi';
 import { Redirect } from 'react-router-dom';
 
 class Auth extends React.Component {
@@ -7,7 +7,8 @@ class Auth extends React.Component {
     super();
 
     this.state = {
-      isAuthorized: null
+      attempt: 0,
+      isAuthorized: isAuthorized
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -27,27 +28,29 @@ class Auth extends React.Component {
     } = this.state;
 
     const isAuthorized = authorizeUser(email, password);
-    this.setState({
-      isAuthorized
-    });
+    this.setState(state => ({
+      isAuthorized,
+      attempt: state.attempt+1
+    }));
   }
   render() {
     const {
-      isAuthorized
+      isAuthorized,
+      attempt
     } = this.state;
 
     return (
-      <div>
+      <form>
         <input placeholder="email" type="text" name="email" onChange={ this.handleEmailChange } />
         <input placeholder="password" type="text" name="password" onChange={ this.handlePasswordChange } />
 
-        <button onClick={this.handleSubmit}>Submit</button>
-        {isAuthorized === false
+        <button type="reset" onClick={this.handleSubmit}>Submit</button>
+        {attempt > 0 && isAuthorized === false
           ?  <p className="error">invalid email or password, try again</p>
           : null}
         
         {isAuthorized === true && <Redirect to="/" />}
-      </div>
+      </form>
     );
   }
 }
